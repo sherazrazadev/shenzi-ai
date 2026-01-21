@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth:8000
+      - AGENT_SERVICE_URL=http://agent:8000
+      - VERIFICATION_SERVICE_URL=http://verification:8000
+      - DATABASE_SERVICE_URL=http://database:8000
+    depends_on:
+      - auth
+      - agent
+      - verification
+      - database
+
+  auth:
+    build: ./services/auth
+    environment:
+      - SECRET_KEY=your-secret-key
+    ports:
+      - "8001:8000"
+
+  agent:
+    build: ./services/agent
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    ports:
+      - "8002:8000"
+
+  verification:
+    build: ./services/verification
+    ports:
+      - "8003:8000"
+
+  database:
+    build: ./services/database
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+    ports:
+      - "8004:8000"
+    depends_on:
+      - mongodb
+
+  client_ui:
+    build: ./services/client_ui
+    ports:
+      - "3000:3000"
+    environment:
+      - API_GATEWAY_URL=http://api-gateway:8000
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

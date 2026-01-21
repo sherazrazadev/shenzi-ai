@@ -1,0 +1,28 @@
+# See which containers are running and their ports
+sudo docker compose ps
+
+# View live logs (very useful for debugging)
+sudo docker compose logs -f
+
+# View logs for just one service (e.g., the UI)
+sudo docker compose logs -f client_ui
+
+sudo docker compose stop
+
+sudo docker compose start
+
+sudo docker compose down
+
+
+sudo docker compose down --rmi all
+
+
+# Step 2: Wipe the Database data (Optional - Be Careful!)
+
+sudo docker compose down -v
+
+
+#5. How to Update After Changing Code
+If you modify your Next.js code or Python files, you need to tell Docker to rebuild the images, otherwise, it will keep running the old version.
+The "Do Everything" Command:
+sudo docker compose up -d --build
