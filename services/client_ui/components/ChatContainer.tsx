@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
+import { useState, useRef, useEffect } from "react";
+import ChatMessage from "./ChatMessage";
+import ChatInput, { ChatInputRef } from "./ChatInput";
 
 interface Message {
   id: string;
@@ -14,17 +14,18 @@ interface Message {
 export default function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      message: 'Hello! I\'m your AI assistant. How can I help you today?',
+      id: "1",
+      message: "Hello! I'm your AI assistant. How can I help you today?",
       isUser: false,
       timestamp: new Date(),
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<ChatInputRef>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -39,17 +40,26 @@ export default function ChatContainer() {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setIsLoading(true);
 
     try {
+      // Prepare messages for API
+      const chatMessages = updatedMessages.map((msg) => ({
+        role: msg.isUser ? "user" : "assistant",
+        content: msg.message,
+      }));
+
       // Use streaming API
-      const response = await fetch('/api/chat/stream', {
-        method: 'POST',
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          messages: chatMessages,
+        }),
       });
 
       if (!response.ok) {
@@ -60,20 +70,20 @@ export default function ChatContainer() {
       const decoder = new TextDecoder();
 
       if (!reader) {
-        throw new Error('No response body');
+        throw new Error("No response body");
       }
 
-      let aiMessageContent = '';
+      let aiMessageContent = "";
       const aiMessageId = (Date.now() + 1).toString();
 
       // Add initial AI message
       const initialAiMessage: Message = {
         id: aiMessageId,
-        message: '',
+        message: "",
         isUser: false,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, initialAiMessage]);
+      setMessages((prev) => [...prev, initialAiMessage]);
 
       try {
         while (true) {
@@ -82,24 +92,38 @@ export default function ChatContainer() {
           if (done) break;
 
           const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
+          const lines = chunk.split("\n");
 
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
+            if (line.startsWith("data: ")) {
               const data = line.slice(6);
 
-              if (data === '[DONE]') {
+              if (data === "[DONE]") {
                 // Stream complete
                 break;
-              } else if (!data.startsWith('Error:')) {
+              } else if (data.startsWith("Error:")) {
+                // Handle error
+                const errorMsg = data.slice(6); // Remove 'Error:'
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId
+                      ? {
+                          ...msg,
+                          message: `Sorry, I encountered an error: ${errorMsg}`,
+                        }
+                      : msg,
+                  ),
+                );
+                break;
+              } else {
                 // Add character to message
                 aiMessageContent += data;
-                setMessages(prev =>
-                  prev.map(msg =>
+                setMessages((prev) =>
+                  prev.map((msg) =>
                     msg.id === aiMessageId
                       ? { ...msg, message: aiMessageContent }
-                      : msg
-                  )
+                      : msg,
+                  ),
                 );
               }
             }
@@ -108,18 +132,18 @@ export default function ChatContainer() {
       } finally {
         reader.releaseLock();
       }
-
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        message: 'Sorry, I\'m having trouble connecting. Please try again.',
+        message: "Sorry, I'm having trouble connecting. Please try again.",
         isUser: false,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      inputRef.current?.focus();
     }
   };
 
@@ -146,8 +170,14 @@ export default function ChatContainer() {
             <div className="bg-gray-200 px-4 py-2 rounded-lg">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
               </div>
             </div>
           </div>
@@ -156,7 +186,11 @@ export default function ChatContainer() {
       </div>
 
       {/* Input */}
-      <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+      <ChatInput
+        ref={inputRef}
+        onSendMessage={handleSendMessage}
+        disabled={isLoading}
+      />
     </div>
   );
 }

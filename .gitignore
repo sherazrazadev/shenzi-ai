@@ -1,4 +1,12 @@
 __pycache__/
+#customer files
+.env/*
+.venv/
+venv/
+tmp/
+.next/
+
+#defualt template
 *.pyc
 *.pyo
 *.pyd

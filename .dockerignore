@@ -1,2 +1,14 @@
-.next
-.venv
+.next/
+.venv/
+venv/
+tmp/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+.env
+.env.*
+.DS_Store
+.idea/   

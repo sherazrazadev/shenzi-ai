@@ -16,7 +16,7 @@ async def gateway(request: Request, path: str):
     if path.startswith("auth"):
         url = f"{AUTH_SERVICE_URL}/{path}"
     elif path.startswith("call-ai"):
-        url = f"{AGENT_SERVICE_URL}/{path.replace('call-ai', 'agent', 1)}"
+        url = f"{AGENT_SERVICE_URL}/{path.replace('call-ai/', '', 1)}"
     elif path.startswith("api"):
         url = f"{DATABASE_SERVICE_URL}/{path.replace('api', 'database', 1)}"
     elif path.startswith("verify"):
