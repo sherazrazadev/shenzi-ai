@@ -1,3 +1,17 @@
+# custome
+services/agent/tests/agent.py
+services/agent/tests/excel_ops.py
+services/agent/tests/ollama_guide.txt
+services/agent/tests/tasks.xlsx
+services/agent/tests/test_format_search_result.py
+services/agent/tests/test_llm_limit.py
+services/agent/tests/test_main_ollama.py
+services/agent/tests/test_ollama.py
+services/agent/tests/test_sheet_detection.py
+services/agent/tests/test_time_sensitive_detection.py
+services/agent/tests/test_tool_parsing.py
+services/agent/tests/*
+
 __pycache__/
 #customer files
 .env/*

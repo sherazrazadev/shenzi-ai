@@ -26,3 +26,7 @@ sudo docker compose down -v
 If you modify your Next.js code or Python files, you need to tell Docker to rebuild the images, otherwise, it will keep running the old version.
 The "Do Everything" Command:
 sudo docker compose up -d --build
+
+
+for logs or errror details of the conainer: 
+sudo docker compose logs -n 100 api-gateway

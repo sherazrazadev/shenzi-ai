@@ -25,8 +25,8 @@ services:
 
   agent:
     build: ./services/agent
-    environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
+    env_file:
+      - ./services/agent/.env
     ports:
       - "8002:8000"
 
